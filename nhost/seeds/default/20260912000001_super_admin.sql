@@ -1,3 +1,11 @@
+INSERT INTO auth.roles (role)
+VALUES
+  ('super_admin'),
+  ('organiser'),
+  ('member'),
+  ('casual')
+ON CONFLICT (role) DO NOTHING;
+
 INSERT INTO auth.users (
   id,
   created_at,

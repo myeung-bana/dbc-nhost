@@ -90,8 +90,8 @@ export default async function handler(req: Request, res: Response) {
     await admin.graphql.request({
       query: `
         mutation AddOrganiserRole($userId: uuid!) {
-          insert_user_roles_one(
-            object: { user_id: $userId, role: organiser }
+          insertAuthUserRole(
+            object: { userId: $userId, role: organiser }
             on_conflict: { constraint: user_roles_user_id_role_key, update_columns: [] }
           ) {
             role

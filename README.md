@@ -65,6 +65,39 @@ Seeded Super Admin for local development:
 - Email: `superadmin@dbc.local`
 - Password: `Admin12345!`
 
+## Admin roles (Super Admin / Organiser)
+
+`nhost.toml` only controls the default sign-up role (`user`) and which roles can be requested at sign-up (`user`, `me`). Privileged roles are registered in `auth.roles` by migration and assigned per user in `auth.user_roles`.
+
+### Local (seed)
+
+Run `nhost up --apply-seeds` to create the seeded Super Admin account above.
+
+### Cloud (assign from Nhost backend)
+
+After deploying migrations to your cloud project:
+
+1. Open the [Nhost Dashboard](https://app.nhost.io) → your project → **Auth** → **Users**
+2. Select the user (or create one via **Add user**)
+3. Under **Roles**, enable `super_admin` (and set **Default role** to `super_admin` if prompted)
+4. Save — the user must sign in again for the JWT to include the new role
+
+Alternatively, run this in the Hasura SQL editor (replace the email):
+
+```sql
+INSERT INTO auth.user_roles (user_id, role)
+SELECT id, 'super_admin'
+FROM auth.users
+WHERE email = 'you@example.com'
+ON CONFLICT DO NOTHING;
+
+UPDATE auth.users
+SET default_role = 'super_admin'
+WHERE email = 'you@example.com';
+```
+
+Organiser access also requires an active `space_memberships` row with `role = organiser`.
+
 Admin orchestration Functions:
 
 - `POST /admin/spaces/create`

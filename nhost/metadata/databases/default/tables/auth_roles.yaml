@@ -1,0 +1,15 @@
+table:
+  name: roles
+  schema: auth
+configuration:
+  custom_name: roles
+  custom_root_fields:
+    select: roles
+    select_aggregate: rolesAggregate
+    select_by_pk: role
+select_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - role
+      filter: {}

@@ -7,3 +7,5 @@
 - "!include public_session_bookings.yaml"
 - "!include public_activity_log.yaml"
 - "!include auth_users.yaml"
+- "!include auth_roles.yaml"
+- "!include auth_user_roles.yaml"

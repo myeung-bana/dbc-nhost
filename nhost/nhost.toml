@@ -48,8 +48,11 @@ disableAutoSignup = false
 
 [auth.user]
 [auth.user.roles]
+# Default role for new sign-ups. Privileged roles (super_admin, organiser, etc.)
+# are registered in auth.roles via migration and assigned per-user in
+# auth.user_roles from the Nhost Dashboard or Auth Admin API.
 default = 'user'
-allowed = ['user', 'me', 'super_admin', 'organiser', 'member', 'casual']
+allowed = ['user', 'me']
 
 [auth.user.locale]
 default = 'en'
