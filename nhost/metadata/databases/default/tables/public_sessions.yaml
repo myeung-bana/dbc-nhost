@@ -1,0 +1,105 @@
+table:
+  name: sessions
+  schema: public
+object_relationships:
+  - name: space
+    using:
+      foreign_key_constraint_on: space_id
+  - name: court
+    using:
+      foreign_key_constraint_on: court_id
+  - name: location
+    using:
+      foreign_key_constraint_on: location_id
+array_relationships:
+  - name: session_bookings
+    using:
+      foreign_key_constraint_on:
+        column: session_id
+        table:
+          name: session_bookings
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - space_id
+        - court_id
+        - location_id
+        - title
+        - starts_at
+        - capacity
+        - status
+  - role: organiser
+    permission:
+      check:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      columns:
+        - space_id
+        - court_id
+        - location_id
+        - title
+        - starts_at
+        - capacity
+        - status
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - court_id
+        - location_id
+        - title
+        - starts_at
+        - capacity
+        - status
+      filter: {}
+      check: null
+  - role: organiser
+    permission:
+      columns:
+        - court_id
+        - location_id
+        - title
+        - starts_at
+        - capacity
+        - status
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      check: null
+delete_permissions:
+  - role: super_admin
+    permission:
+      filter: {}

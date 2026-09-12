@@ -1,0 +1,46 @@
+table:
+  name: master_locations
+  schema: public
+object_relationships:
+  - name: country
+    using:
+      foreign_key_constraint_on: country_id
+array_relationships:
+  - name: courts
+    using:
+      foreign_key_constraint_on:
+        column: location_id
+        table:
+          name: master_courts
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter: {}
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - name
+        - country_id
+        - address
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - name
+        - country_id
+        - address
+      filter: {}
+      check: null
+delete_permissions:
+  - role: super_admin
+    permission:
+      filter: {}

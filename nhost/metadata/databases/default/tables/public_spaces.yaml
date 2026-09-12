@@ -1,0 +1,65 @@
+table:
+  name: spaces
+  schema: public
+array_relationships:
+  - name: space_memberships
+    using:
+      foreign_key_constraint_on:
+        column: space_id
+        table:
+          name: space_memberships
+          schema: public
+  - name: sessions
+    using:
+      foreign_key_constraint_on:
+        column: space_id
+        table:
+          name: sessions
+          schema: public
+  - name: activity_logs
+    using:
+      foreign_key_constraint_on:
+        column: space_id
+        table:
+          name: activity_log
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter:
+        space_memberships:
+          user_id:
+            _eq: X-Hasura-User-Id
+          role:
+            _eq: organiser
+          status:
+            _eq: active
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - name
+        - slug
+        - description
+        - status
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - name
+        - slug
+        - description
+        - status
+      filter: {}
+      check: null
+delete_permissions:
+  - role: super_admin
+    permission:
+      filter: {}

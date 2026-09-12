@@ -1,0 +1,36 @@
+table:
+  name: master_courts
+  schema: public
+object_relationships:
+  - name: location
+    using:
+      foreign_key_constraint_on: location_id
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter: {}
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - name
+        - location_id
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - name
+        - location_id
+      filter: {}
+      check: null
+delete_permissions:
+  - role: super_admin
+    permission:
+      filter: {}

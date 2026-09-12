@@ -1,0 +1,49 @@
+table:
+  name: space_memberships
+  schema: public
+object_relationships:
+  - name: space
+    using:
+      foreign_key_constraint_on: space_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+  - name: invited_by_user
+    using:
+      foreign_key_constraint_on: invited_by
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - space_id
+        - user_id
+        - role
+        - status
+        - invited_by
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - role
+        - status
+      filter: {}
+      check: null

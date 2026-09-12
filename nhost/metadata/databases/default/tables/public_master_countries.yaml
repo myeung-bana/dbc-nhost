@@ -1,0 +1,40 @@
+table:
+  name: master_countries
+  schema: public
+array_relationships:
+  - name: locations
+    using:
+      foreign_key_constraint_on:
+        column: country_id
+        table:
+          name: master_locations
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter: {}
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - name
+        - code
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - name
+        - code
+      filter: {}
+      check: null
+delete_permissions:
+  - role: super_admin
+    permission:
+      filter: {}

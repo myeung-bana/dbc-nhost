@@ -1,0 +1,82 @@
+table:
+  name: users
+  schema: auth
+configuration:
+  column_config:
+    avatar_url:
+      custom_name: avatarUrl
+    created_at:
+      custom_name: createdAt
+    default_role:
+      custom_name: defaultRole
+    display_name:
+      custom_name: displayName
+    email_verified:
+      custom_name: emailVerified
+    is_anonymous:
+      custom_name: isAnonymous
+    last_seen:
+      custom_name: lastSeen
+    new_email:
+      custom_name: newEmail
+    phone_number:
+      custom_name: phoneNumber
+    phone_number_verified:
+      custom_name: phoneNumberVerified
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    avatar_url: avatarUrl
+    created_at: createdAt
+    default_role: defaultRole
+    display_name: displayName
+    email_verified: emailVerified
+    is_anonymous: isAnonymous
+    last_seen: lastSeen
+    new_email: newEmail
+    phone_number: phoneNumber
+    phone_number_verified: phoneNumberVerified
+    updated_at: updatedAt
+  custom_name: users
+  custom_root_fields:
+    select: users
+    select_by_pk: user
+array_relationships:
+  - name: space_memberships
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: space_memberships
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - id
+        - email
+        - display_name
+        - avatar_url
+        - default_role
+        - created_at
+        - last_seen
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns:
+        - id
+        - email
+        - display_name
+        - avatar_url
+        - created_at
+      filter:
+        space_memberships:
+          space:
+            space_memberships:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _eq: organiser
+              status:
+                _eq: active
