@@ -6,6 +6,14 @@ type AuthUser = {
   displayName?: string | null
 }
 
+// Must match [auth.user.roles] in nhost.toml — public signup cannot assign privileged roles.
+const SIGNUP_ALLOWED_ROLES = ['user', 'me'] as const
+const SIGNUP_DEFAULT_ROLE = 'user'
+
+function getPrivilegedRoles(roles: string[]) {
+  return roles.filter((role) => !SIGNUP_ALLOWED_ROLES.includes(role as (typeof SIGNUP_ALLOWED_ROLES)[number]))
+}
+
 function getAuthBaseUrl() {
   const subdomain = process.env.NHOST_SUBDOMAIN
   const region = process.env.NHOST_REGION
@@ -94,8 +102,8 @@ export async function createAuthUser(input: {
       password: input.password,
       options: {
         displayName: input.displayName,
-        allowedRoles: input.roles,
-        defaultRole: input.roles.includes('organiser') ? 'user' : 'user',
+        allowedRoles: [...SIGNUP_ALLOWED_ROLES],
+        defaultRole: SIGNUP_DEFAULT_ROLE,
       },
     }),
   })
@@ -129,7 +137,10 @@ export async function createAuthUser(input: {
     throw new Error('Failed to create auth user: signup did not return a user')
   }
 
-  await grantAuthRoles(user.id, input.roles)
+  const privilegedRoles = getPrivilegedRoles(input.roles)
+  if (privilegedRoles.length) {
+    await grantAuthRoles(user.id, privilegedRoles)
+  }
 
   return {
     id: user.id,
