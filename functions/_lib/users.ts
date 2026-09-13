@@ -6,6 +6,50 @@ type AuthUser = {
   displayName?: string | null
 }
 
+function getAuthBaseUrl() {
+  const subdomain = process.env.NHOST_SUBDOMAIN
+  const region = process.env.NHOST_REGION
+  const configuredUrl = process.env.NHOST_AUTH_URL
+
+  if (subdomain && region) {
+    if (subdomain === 'local' && region === 'local') {
+      return 'https://local.auth.local.nhost.run/v1'
+    }
+
+    return `https://${subdomain}.auth.${region}.nhost.run/v1`
+  }
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, '')
+  }
+
+  throw new Error('Missing Nhost auth configuration')
+}
+
+async function grantAuthRoles(userId: string, roles: string[]) {
+  const admin = createAdminClient()
+
+  for (const role of roles) {
+    const { body } = await admin.graphql.request({
+      query: `
+        mutation GrantAuthRole($userId: uuid!, $role: String!) {
+          insertAuthUserRole(
+            object: { userId: $userId, role: $role }
+            on_conflict: { constraint: user_roles_user_id_role_key, update_columns: [] }
+          ) {
+            role
+          }
+        }
+      `,
+      variables: { userId, role },
+    })
+
+    if (body.errors?.length) {
+      throw new Error(body.errors[0]?.message ?? `Failed to grant role ${role}`)
+    }
+  }
+}
+
 export async function findUserByEmail(email: string): Promise<AuthUser | null> {
   const admin = createAdminClient()
   const { body } = await admin.graphql.request({
@@ -38,39 +82,59 @@ export async function createAuthUser(input: {
   displayName: string
   roles: string[]
 }): Promise<AuthUser> {
-  const authUrl = process.env.NHOST_AUTH_URL
-  const adminSecret =
-    process.env.NHOST_ADMIN_SECRET ?? process.env.HASURA_GRAPHQL_ADMIN_SECRET
+  const authUrl = getAuthBaseUrl()
 
-  if (!authUrl || !adminSecret) {
-    throw new Error('Missing auth admin configuration')
-  }
-
-  const response = await fetch(`${authUrl}/users`, {
+  const response = await fetch(`${authUrl}/signup/email-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-hasura-admin-secret': adminSecret,
     },
     body: JSON.stringify({
       email: input.email,
       password: input.password,
-      displayName: input.displayName,
-      emailVerified: true,
-      roles: input.roles,
+      options: {
+        displayName: input.displayName,
+        allowedRoles: input.roles,
+        defaultRole: input.roles.includes('organiser') ? 'user' : 'user',
+      },
     }),
   })
 
   if (!response.ok) {
     const details = await response.text()
+
+    if (details.includes('already') || details.includes('exists')) {
+      const existing = await findUserByEmail(input.email)
+      if (existing) {
+        await grantAuthRoles(existing.id, input.roles)
+        return existing
+      }
+    }
+
     throw new Error(`Failed to create auth user: ${details}`)
   }
 
-  const data = (await response.json()) as { id: string; email: string; displayName?: string }
+  const data = (await response.json()) as {
+    session?: {
+      user?: {
+        id: string
+        email: string
+        displayName?: string | null
+      }
+    }
+  }
+
+  const user = data.session?.user
+  if (!user?.id) {
+    throw new Error('Failed to create auth user: signup did not return a user')
+  }
+
+  await grantAuthRoles(user.id, input.roles)
+
   return {
-    id: data.id,
-    email: data.email,
-    displayName: data.displayName ?? input.displayName,
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName ?? input.displayName,
   }
 }
 
@@ -80,8 +144,11 @@ export async function ensureUser(input: {
   password?: string
   roles?: string[]
 }): Promise<AuthUser> {
+  const roles = input.roles ?? ['user']
   const existing = await findUserByEmail(input.email)
+
   if (existing) {
+    await grantAuthRoles(existing.id, roles)
     return existing
   }
 
@@ -93,7 +160,7 @@ export async function ensureUser(input: {
     email: input.email,
     password: input.password,
     displayName: input.displayName,
-    roles: input.roles ?? ['user'],
+    roles,
   })
 }
 
