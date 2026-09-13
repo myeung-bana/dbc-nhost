@@ -65,6 +65,16 @@ Seeded Super Admin for local development:
 - Email: `superadmin@dbc.local`
 - Password: `Admin12345!`
 
+### HK master data (LCSD sports centres)
+
+Seed `20260913100000_hk_lcsd_master_data.sql` inserts major Hong Kong LCSD sports centres and badminton courts. It expects a country row with `code = 'HK'` (create **Hong Kong / HK** in Master Console first if missing).
+
+```bash
+nhost up --apply-seeds
+```
+
+Source: [LCSD sports centres directory](https://www.lcsd.gov.hk/en/facilities/facilitieslist/landsports/sportcentre.html). Court counts follow each venue’s published multi-purpose arena capacity. Re-running the seed is idempotent (skips existing locations and courts).
+
 ## Admin roles (Super Admin / Organiser)
 
 `nhost.toml` only controls the default sign-up role (`user`) and which roles can be requested at sign-up (`user`, `me`). Privileged roles are registered in `auth.roles` by migration and assigned per user in `auth.user_roles`.
