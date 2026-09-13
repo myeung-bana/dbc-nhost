@@ -47,6 +47,7 @@ insert_permissions:
         - location_id
         - title
         - starts_at
+        - ends_at
         - capacity
         - status
   - role: organiser
@@ -66,6 +67,7 @@ insert_permissions:
         - location_id
         - title
         - starts_at
+        - ends_at
         - capacity
         - status
 update_permissions:
@@ -76,6 +78,7 @@ update_permissions:
         - location_id
         - title
         - starts_at
+        - ends_at
         - capacity
         - status
       filter: {}
@@ -87,6 +90,7 @@ update_permissions:
         - location_id
         - title
         - starts_at
+        - ends_at
         - capacity
         - status
       filter:
