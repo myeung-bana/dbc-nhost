@@ -41,7 +41,18 @@ configuration:
   custom_root_fields:
     select: users
     select_by_pk: user
+object_relationships:
+  - name: defaultRoleByRole
+    using:
+      foreign_key_constraint_on: default_role
 array_relationships:
+  - name: roles
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_roles
+          schema: auth
   - name: space_memberships
     using:
       foreign_key_constraint_on:
