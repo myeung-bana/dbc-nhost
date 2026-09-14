@@ -73,6 +73,23 @@ select_permissions:
                     status:
                       _eq: confirmed
       allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - id
+        - status
+      filter:
+        _and:
+          - status:
+              _eq: confirmed
+          - session:
+              space:
+                _and:
+                  - visibility:
+                      _eq: public
+                  - status:
+                      _eq: active
+      allow_aggregations: true
   - role: public
     permission:
       columns:
@@ -84,6 +101,9 @@ select_permissions:
               _eq: confirmed
           - session:
               space:
-                visibility:
-                  _eq: public
+                _and:
+                  - visibility:
+                      _eq: public
+                  - status:
+                      _eq: active
       allow_aggregations: true
