@@ -39,7 +39,7 @@ version = '0.49.1'
 mode = 'disabled'
 
 [auth.redirections]
-clientUrl = 'http://localhost:3000'
+clientUrl = 'http://localhost:3001'
 
 [auth.signUp]
 enabled = true
@@ -121,7 +121,9 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.google]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
+clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
 [auth.method.oauth.linkedin]
 enabled = false

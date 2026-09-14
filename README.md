@@ -108,6 +108,26 @@ WHERE email = 'you@example.com';
 
 Organiser access also requires an active `space_memberships` row with `role = organiser`.
 
+## Google OAuth (client PWA)
+
+Google credentials are stored as Nhost secrets — never in the client app.
+
+1. Add to local `.secrets` (see `.secrets.example`):
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+2. Add the same secret names in Nhost Cloud (**Settings → Secrets**) or via CLI:
+   ```bash
+   nhost secrets create GOOGLE_CLIENT_ID --value 'your-client-id'
+   nhost secrets create GOOGLE_CLIENT_SECRET --value 'your-client-secret'
+   ```
+3. Enable Google in `nhost/nhost.toml` (references `{{ secrets.GOOGLE_* }}`).
+4. In Google Cloud Console, add redirect URIs:
+   - Local: `https://local.auth.local.nhost.run/v1/signin/provider/google/callback`
+   - Cloud: `https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/google/callback`
+5. Set `[auth.redirections].clientUrl` to your client app origin (local: `http://localhost:3001`).
+
+The client PWA uses PKCE: **Continue with Google** → Nhost Auth → `/auth/callback` → session cookie sync.
+
 Admin orchestration Functions:
 
 - `POST /admin/spaces/create`
