@@ -191,3 +191,37 @@ select_permissions:
       filter:
         id:
           _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - display_name
+        - avatar_url
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check:
+        id:
+          _eq: X-Hasura-User-Id
+  - role: member
+    permission:
+      columns:
+        - display_name
+        - avatar_url
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check:
+        id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      columns:
+        - display_name
+        - avatar_url
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check:
+        id:
+          _eq: X-Hasura-User-Id
