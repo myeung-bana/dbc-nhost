@@ -15,3 +15,4 @@
 - "!include public_sessions.yaml"
 - "!include public_session_bookings.yaml"
 - "!include public_activity_log.yaml"
+- "!include public_user_profiles.yaml"

@@ -27,3 +27,63 @@ select_permissions:
                 _eq: organiser
               status:
                 _eq: active
+  - role: member
+    permission:
+      columns:
+        - id
+        - session_id
+        - user_id
+        - status
+        - created_at
+        - updated_at
+      filter:
+        _or:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - _and:
+              - status:
+                  _eq: confirmed
+              - session:
+                  session_bookings:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+                    status:
+                      _eq: confirmed
+      allow_aggregations: true
+  - role: casual
+    permission:
+      columns:
+        - id
+        - session_id
+        - user_id
+        - status
+        - created_at
+        - updated_at
+      filter:
+        _or:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - _and:
+              - status:
+                  _eq: confirmed
+              - session:
+                  session_bookings:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+                    status:
+                      _eq: confirmed
+      allow_aggregations: true
+  - role: public
+    permission:
+      columns:
+        - id
+        - status
+      filter:
+        _and:
+          - status:
+              _eq: confirmed
+          - session:
+              space:
+                visibility:
+                  _eq: public
+      allow_aggregations: true

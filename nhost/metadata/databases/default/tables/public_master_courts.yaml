@@ -15,6 +15,22 @@ select_permissions:
     permission:
       columns: "*"
       filter: {}
+  - role: member
+    permission:
+      columns: "*"
+      filter: {}
+  - role: casual
+    permission:
+      columns: "*"
+      filter: {}
+  - role: user
+    permission:
+      columns: "*"
+      filter: {}
+  - role: public
+    permission:
+      columns: "*"
+      filter: {}
 insert_permissions:
   - role: super_admin
     permission:

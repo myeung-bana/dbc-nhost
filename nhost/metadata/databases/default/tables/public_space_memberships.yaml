@@ -29,6 +29,42 @@ select_permissions:
               _eq: organiser
             status:
               _eq: active
+  - role: member
+    permission:
+      columns:
+        - id
+        - space_id
+        - user_id
+        - role
+        - status
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      columns:
+        - id
+        - space_id
+        - user_id
+        - role
+        - status
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      columns:
+        - id
+        - space_id
+        - user_id
+        - role
+        - status
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
 insert_permissions:
   - role: super_admin
     permission:

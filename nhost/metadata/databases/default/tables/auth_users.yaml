@@ -158,3 +158,36 @@ select_permissions:
                 _eq: organiser
               status:
                 _eq: active
+  - role: member
+    permission:
+      columns:
+        - id
+        - email
+        - display_name
+        - avatar_url
+        - created_at
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      columns:
+        - id
+        - email
+        - display_name
+        - avatar_url
+        - created_at
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      columns:
+        - id
+        - email
+        - display_name
+        - avatar_url
+        - created_at
+      filter:
+        id:
+          _eq: X-Hasura-User-Id

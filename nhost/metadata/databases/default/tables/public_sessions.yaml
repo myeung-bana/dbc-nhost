@@ -37,6 +37,68 @@ select_permissions:
               _eq: organiser
             status:
               _eq: active
+  - role: member
+    permission:
+      columns: "*"
+      filter:
+        _and:
+          - status:
+              _eq: scheduled
+          - space:
+              _or:
+                - visibility:
+                    _eq: public
+                - space_memberships:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+                    status:
+                      _eq: active
+      allow_aggregations: true
+  - role: casual
+    permission:
+      columns: "*"
+      filter:
+        _and:
+          - status:
+              _eq: scheduled
+          - space:
+              _or:
+                - visibility:
+                    _eq: public
+                - space_memberships:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+                    status:
+                      _eq: active
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns: "*"
+      filter:
+        _and:
+          - status:
+              _eq: scheduled
+          - space:
+              _and:
+                - visibility:
+                    _eq: public
+                - status:
+                    _eq: active
+      allow_aggregations: true
+  - role: public
+    permission:
+      columns: "*"
+      filter:
+        _and:
+          - status:
+              _eq: scheduled
+          - space:
+              _and:
+                - visibility:
+                    _eq: public
+                - status:
+                    _eq: active
+      allow_aggregations: true
 insert_permissions:
   - role: super_admin
     permission:

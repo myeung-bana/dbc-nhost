@@ -185,3 +185,10 @@ export async function ensureOrganiserUser(input: {
     roles: ['organiser', 'user'],
   })
 }
+
+export async function grantMembershipAuthRole(
+  userId: string,
+  role: 'member' | 'casual' | 'organiser',
+) {
+  await grantAuthRoles(userId, [role, 'user'])
+}

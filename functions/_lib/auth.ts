@@ -17,6 +17,9 @@ export type AuthContext = {
   roles: string[]
   isSuperAdmin: boolean
   isOrganiser: boolean
+  isMember: boolean
+  isCasual: boolean
+  isClientUser: boolean
 }
 
 export async function requireAuth(authorization?: string): Promise<AuthContext | null> {
@@ -53,12 +56,18 @@ export async function requireAuth(authorization?: string): Promise<AuthContext |
 
   const isSuperAdmin = roles.includes('super_admin')
   const isOrganiser = roles.includes('organiser') || isSuperAdmin
+  const isMember = roles.includes('member') || isOrganiser
+  const isCasual = roles.includes('casual') || isMember
+  const isClientUser = isCasual || roles.includes('user')
 
   return {
     userId,
     roles,
     isSuperAdmin,
     isOrganiser,
+    isMember,
+    isCasual,
+    isClientUser,
   }
 }
 
