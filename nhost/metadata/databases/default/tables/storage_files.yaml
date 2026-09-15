@@ -1,0 +1,227 @@
+table:
+  name: files
+  schema: storage
+configuration:
+  column_config:
+    bucket_id:
+      custom_name: bucketId
+    created_at:
+      custom_name: createdAt
+    etag:
+      custom_name: etag
+    id:
+      custom_name: id
+    is_uploaded:
+      custom_name: isUploaded
+    metadata:
+      custom_name: metadata
+    mime_type:
+      custom_name: mimeType
+    name:
+      custom_name: name
+    size:
+      custom_name: size
+    updated_at:
+      custom_name: updatedAt
+    uploaded_by_user_id:
+      custom_name: uploadedByUserId
+  custom_column_names:
+    bucket_id: bucketId
+    created_at: createdAt
+    etag: etag
+    id: id
+    is_uploaded: isUploaded
+    metadata: metadata
+    mime_type: mimeType
+    name: name
+    size: size
+    updated_at: updatedAt
+    uploaded_by_user_id: uploadedByUserId
+  custom_name: files
+  custom_root_fields:
+    delete: deleteFiles
+    delete_by_pk: deleteFile
+    insert: insertFiles
+    insert_one: insertFile
+    select: files
+    select_aggregate: filesAggregate
+    select_by_pk: file
+    update: updateFiles
+    update_by_pk: updateFile
+object_relationships:
+  - name: bucket
+    using:
+      foreign_key_constraint_on: bucket_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        bucket_id:
+          _in: [default, avatars]
+      set:
+        uploaded_by_user_id: x-hasura-User-Id
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+  - role: member
+    permission:
+      check:
+        bucket_id:
+          _in: [default, avatars]
+      set:
+        uploaded_by_user_id: x-hasura-User-Id
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+  - role: casual
+    permission:
+      check:
+        bucket_id:
+          _in: [default, avatars]
+      set:
+        uploaded_by_user_id: x-hasura-User-Id
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+        - uploaded_by_user_id
+        - created_at
+        - updated_at
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+  - role: member
+    permission:
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+        - uploaded_by_user_id
+        - created_at
+        - updated_at
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+        - uploaded_by_user_id
+        - created_at
+        - updated_at
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+  - role: public
+    permission:
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+        - created_at
+        - updated_at
+      filter:
+        bucket_id:
+          _eq: avatars
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+  - role: member
+    permission:
+      columns:
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      columns:
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+  - role: member
+    permission:
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
