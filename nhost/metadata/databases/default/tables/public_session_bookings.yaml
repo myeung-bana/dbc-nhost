@@ -77,18 +77,25 @@ select_permissions:
     permission:
       columns:
         - id
+        - session_id
+        - user_id
         - status
+        - created_at
+        - updated_at
       filter:
-        _and:
-          - status:
-              _eq: confirmed
-          - session:
-              space:
-                _and:
-                  - visibility:
-                      _eq: public
-                  - status:
-                      _eq: active
+        _or:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - _and:
+              - status:
+                  _eq: confirmed
+              - session:
+                  space:
+                    _and:
+                      - visibility:
+                          _eq: public
+                      - status:
+                          _eq: active
       allow_aggregations: true
   - role: public
     permission:
