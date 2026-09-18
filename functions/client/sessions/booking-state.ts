@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { getBookingState, getPriorityCutoff } from '../../_lib/booking'
+import { getBookingState } from '../../_lib/booking'
 import { requireAuth } from '../../_lib/auth'
 import { getActiveMembership } from '../../_lib/membership'
 import { createAdminClient } from '../../_lib/nhost-admin'
@@ -82,7 +82,7 @@ export default async function handler(req: Request, res: Response) {
     }
 
     const confirmedCount = data.session_bookings?.length ?? 0
-    const priorityOpensAt = getPriorityCutoff(session.starts_at).toISOString()
+    const bookingClosesAt = session.starts_at
 
     if (!auth?.isClientUser) {
       if (session.space?.visibility !== 'public') {
@@ -98,7 +98,7 @@ export default async function handler(req: Request, res: Response) {
 
       return sendSuccess(res, {
         state,
-        priorityOpensAt,
+        bookingClosesAt,
         confirmedCount,
         capacity: session.capacity,
         isGuest: true,
@@ -115,7 +115,7 @@ export default async function handler(req: Request, res: Response) {
 
     return sendSuccess(res, {
       state,
-      priorityOpensAt,
+      bookingClosesAt,
       confirmedCount,
       capacity: session.capacity,
       isGuest: false,

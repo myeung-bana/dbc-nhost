@@ -155,6 +155,7 @@ select_permissions:
         - etag
         - is_uploaded
         - metadata
+        - uploaded_by_user_id
         - created_at
         - updated_at
       filter:
