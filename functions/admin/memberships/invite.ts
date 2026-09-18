@@ -2,14 +2,11 @@ import type { Request, Response } from 'express'
 import { assertOrganiserOfSpace, requireAuth, logActivity } from '../../_lib/auth'
 import { createAdminClient } from '../../_lib/nhost-admin'
 import { sendError, sendSuccess } from '../../_lib/response'
-import { ensureUser, findUserByEmail } from '../../_lib/users'
 
 type InviteBody = {
   spaceId: string
-  email: string
+  userId: string
   role: 'member' | 'casual' | 'organiser'
-  displayName?: string
-  password?: string
 }
 
 export default async function handler(req: Request, res: Response) {
@@ -28,8 +25,8 @@ export default async function handler(req: Request, res: Response) {
       return sendError(res, 'spaceId is required')
     }
 
-    if (!body.email?.trim()) {
-      return sendError(res, 'email is required')
+    if (!body.userId) {
+      return sendError(res, 'userId is required')
     }
 
     if (!['member', 'casual', 'organiser'].includes(body.role)) {
@@ -45,23 +42,69 @@ export default async function handler(req: Request, res: Response) {
       return sendError(res, 'Forbidden for this space', 403)
     }
 
-    const email = body.email.trim().toLowerCase()
-    let user = await findUserByEmail(email)
+    const admin = createAdminClient()
 
-    if (!user) {
-      if (!body.password) {
-        return sendError(res, 'Password is required when inviting a new user')
-      }
+    const { body: userResult } = await admin.graphql.request({
+      query: `
+        query UserById($id: uuid!) {
+          user(id: $id) {
+            id
+            email
+            displayName
+          }
+        }
+      `,
+      variables: { id: body.userId },
+    })
 
-      user = await ensureUser({
-        email,
-        displayName: body.displayName?.trim() || email,
-        password: body.password,
-        roles: ['user'],
-      })
+    if (userResult.errors?.length) {
+      return sendError(res, userResult.errors[0]?.message ?? 'Failed to load user', 400)
     }
 
-    const admin = createAdminClient()
+    const user = (userResult.data as {
+      user?: { id: string; email: string; displayName?: string | null } | null
+    }).user
+
+    if (!user) {
+      return sendError(res, 'User not found', 404)
+    }
+
+    const { body: existingResult } = await admin.graphql.request({
+      query: `
+        query ExistingMembership($spaceId: uuid!, $userId: uuid!) {
+          space_memberships(
+            where: {
+              space_id: { _eq: $spaceId }
+              user_id: { _eq: $userId }
+            }
+            limit: 1
+          ) {
+            id
+            status
+          }
+        }
+      `,
+      variables: { spaceId: body.spaceId, userId: body.userId },
+    })
+
+    if (existingResult.errors?.length) {
+      return sendError(
+        res,
+        existingResult.errors[0]?.message ?? 'Failed to check membership',
+        400,
+      )
+    }
+
+    const existing = (
+      existingResult.data as {
+        space_memberships?: Array<{ id: string; status: string }>
+      }
+    ).space_memberships?.[0]
+
+    if (existing?.status === 'active') {
+      return sendError(res, 'User is already an active member of this space')
+    }
+
     const { body: result } = await admin.graphql.request({
       query: `
         mutation InviteMembership($object: space_memberships_insert_input!) {
@@ -83,7 +126,7 @@ export default async function handler(req: Request, res: Response) {
       variables: {
         object: {
           space_id: body.spaceId,
-          user_id: user.id,
+          user_id: body.userId,
           role: body.role,
           status: 'pending',
           invited_by: auth.userId,
@@ -103,7 +146,7 @@ export default async function handler(req: Request, res: Response) {
       entityId: (result.data as {
         insert_space_memberships_one?: { id?: string }
       })?.insert_space_memberships_one?.id,
-      metadata: { email, role: body.role },
+      metadata: { email: user.email, role: body.role, userId: body.userId },
     })
 
     return sendSuccess(res, {
