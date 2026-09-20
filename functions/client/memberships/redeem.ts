@@ -6,6 +6,7 @@ import {
   findInviteByCode,
   isInviteExpired,
   isInviteRedeemable,
+  markInviteUsed,
 } from '../../_lib/space-invites'
 import { sendError, sendSuccess } from '../../_lib/response'
 import { grantMembershipAuthRole } from '../../_lib/users'
@@ -59,7 +60,7 @@ export default async function handler(req: Request, res: Response) {
       if (invite.status === 'revoked') {
         return sendError(res, 'Invite has been revoked', 410)
       }
-      if (invite.status === 'redeemed') {
+      if (invite.status === 'redeemed' || invite.status === 'exhausted') {
         return sendError(res, 'Invite has already been used', 410)
       }
       return sendError(res, 'Invite is not available', 410)
@@ -162,25 +163,7 @@ export default async function handler(req: Request, res: Response) {
 
     await grantMembershipAuthRole(auth.userId, membership.role)
 
-    const redeemedAt = new Date().toISOString()
-    await admin.graphql.request({
-      query: `
-        mutation MarkInviteRedeemed($id: uuid!, $userId: uuid!, $redeemedAt: timestamptz!) {
-          update_space_invites_by_pk(
-            pk_columns: { id: $id }
-            _set: {
-              status: redeemed
-              redeemed_at: $redeemedAt
-              redeemed_by: $userId
-            }
-          ) {
-            id
-            status
-          }
-        }
-      `,
-      variables: { id: invite.id, userId: auth.userId, redeemedAt },
-    })
+    await markInviteUsed(invite, auth.userId)
 
     await logActivity({
       spaceId: invite.space_id,

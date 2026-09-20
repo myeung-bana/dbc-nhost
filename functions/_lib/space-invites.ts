@@ -10,9 +10,11 @@ export type SpaceInviteRow = {
   email?: string | null
   expires_at: string
   max_uses: number
+  use_count: number
+  invite_kind?: 'one_off' | 'standing'
   redeemed_at?: string | null
   redeemed_by?: string | null
-  status: 'open' | 'redeemed' | 'revoked' | 'expired'
+  status: 'open' | 'redeemed' | 'revoked' | 'expired' | 'exhausted'
   created_by: string
   space?: { id: string; name: string; slug: string } | null
 }
@@ -36,6 +38,8 @@ export async function findInviteByCode(code: string): Promise<SpaceInviteRow | n
           email
           expires_at
           max_uses
+          use_count
+          invite_kind
           redeemed_at
           redeemed_by
           status
@@ -71,5 +75,56 @@ export function isInviteRedeemable(invite: SpaceInviteRow) {
     return false
   }
 
-  return !isInviteExpired(invite)
+  if (isInviteExpired(invite)) {
+    return false
+  }
+
+  if (invite.use_count >= invite.max_uses) {
+    return false
+  }
+
+  return true
+}
+
+export async function markInviteUsed(invite: SpaceInviteRow, userId: string) {
+  const admin = createAdminClient()
+  const nextUseCount = invite.use_count + 1
+  const exhausted = nextUseCount >= invite.max_uses
+
+  const { body } = await admin.graphql.request({
+    query: `
+      mutation MarkInviteUsed(
+        $id: uuid!
+        $useCount: Int!
+        $status: space_invite_status!
+        $userId: uuid!
+        $redeemedAt: timestamptz!
+      ) {
+        update_space_invites_by_pk(
+          pk_columns: { id: $id }
+          _set: {
+            use_count: $useCount
+            status: $status
+            redeemed_at: $redeemedAt
+            redeemed_by: $userId
+          }
+        ) {
+          id
+          status
+          use_count
+        }
+      }
+    `,
+    variables: {
+      id: invite.id,
+      useCount: nextUseCount,
+      status: exhausted ? 'exhausted' : invite.max_uses === 1 ? 'redeemed' : 'open',
+      userId,
+      redeemedAt: new Date().toISOString(),
+    },
+  })
+
+  if (body.errors?.length) {
+    throw new Error(body.errors[0]?.message ?? 'Failed to update invite usage')
+  }
 }

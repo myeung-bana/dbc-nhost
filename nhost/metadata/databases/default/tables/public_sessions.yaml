@@ -53,6 +53,9 @@ select_permissions:
                       _eq: X-Hasura-User-Id
                     status:
                       _eq: active
+                - space_follows:
+                    user_id:
+                      _eq: X-Hasura-User-Id
       allow_aggregations: true
   - role: casual
     permission:
@@ -70,6 +73,9 @@ select_permissions:
                       _eq: X-Hasura-User-Id
                     status:
                       _eq: active
+                - space_follows:
+                    user_id:
+                      _eq: X-Hasura-User-Id
       allow_aggregations: true
   - role: user
     permission:

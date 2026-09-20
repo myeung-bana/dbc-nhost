@@ -11,7 +11,7 @@ function randomSegment(length: number) {
 }
 
 export function formatInviteCode(segment: string) {
-  return `DBC-${segment}`
+  return `GACHI-${segment}`
 }
 
 export async function generateUniqueInviteCode(maxAttempts = 8): Promise<string> {

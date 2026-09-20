@@ -59,15 +59,15 @@ export default async function handler(req: Request, res: Response) {
 
     const { body: usersResult } = await admin.graphql.request({
       query: `
-        query SearchUsers($pattern: String!, $excludeIds: [uuid!]!) {
+        query SearchUsers($emailPattern: citext!, $namePattern: String!, $excludeIds: [uuid!]!) {
           users(
             where: {
               _and: [
                 { id: { _nin: $excludeIds } }
                 {
                   _or: [
-                    { email: { _ilike: $pattern } }
-                    { displayName: { _ilike: $pattern } }
+                    { email: { _ilike: $emailPattern } }
+                    { displayName: { _ilike: $namePattern } }
                   ]
                 }
               ]
@@ -82,7 +82,7 @@ export default async function handler(req: Request, res: Response) {
           }
         }
       `,
-      variables: { pattern, excludeIds },
+      variables: { emailPattern: pattern, namePattern: pattern, excludeIds },
     })
 
     if (usersResult.errors?.length) {

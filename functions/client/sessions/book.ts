@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import { bookingResultStatus, canBook, getBookingState } from '../../_lib/booking'
 import { logActivity, requireAuth } from '../../_lib/auth'
 import { assertClientAccess } from '../../_lib/membership'
+import { getPassBalance, decrementPassCredit } from '../../_lib/passes'
 import { createAdminClient } from '../../_lib/nhost-admin'
 import { sendError, sendSuccess } from '../../_lib/response'
 
@@ -84,10 +85,17 @@ export default async function handler(req: Request, res: Response) {
       return sendError(res, 'You must be an active member of this space to book', 403)
     }
 
+    const passBalance =
+      membership.role === 'casual'
+        ? (await getPassBalance(session.space_id, auth.userId))?.balance ?? 0
+        : null
+
     const state = getBookingState({
       session,
       confirmedCount: data.session_bookings?.length ?? 0,
       membershipRole: membership.role,
+      isFollowing: false,
+      passBalance,
       existingBooking: data.userBooking?.[0] ?? null,
     })
 
@@ -130,6 +138,14 @@ export default async function handler(req: Request, res: Response) {
 
     if (mutationResult.errors?.length) {
       return sendError(res, mutationResult.errors[0]?.message ?? 'Failed to book session', 400)
+    }
+
+    if (membership.role === 'casual' && nextStatus === 'confirmed') {
+      await decrementPassCredit({
+        spaceId: session.space_id,
+        userId: auth.userId,
+        sessionId: body.sessionId,
+      })
     }
 
     await logActivity({

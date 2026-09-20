@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express'
-import { getBookingState } from '../../_lib/booking'
+import { canBook, bookingResultStatus, getBookingState, getCanBookReason } from '../../_lib/booking'
 import { requireAuth } from '../../_lib/auth'
 import { getActiveMembership } from '../../_lib/membership'
+import { getSpaceFollow } from '../../_lib/follows'
+import { getPassBalance } from '../../_lib/passes'
 import { createAdminClient } from '../../_lib/nhost-admin'
 import { sendError, sendSuccess } from '../../_lib/response'
 
@@ -93,6 +95,7 @@ export default async function handler(req: Request, res: Response) {
         session,
         confirmedCount,
         membershipRole: null,
+        isFollowing: false,
         existingBooking: null,
       })
 
@@ -102,14 +105,25 @@ export default async function handler(req: Request, res: Response) {
         confirmedCount,
         capacity: session.capacity,
         isGuest: true,
+        membershipRole: null,
+        passBalance: null,
+        canBookReason: getCanBookReason(state),
       })
     }
 
     const membership = await getActiveMembership(session.space_id, auth.userId)
+    const follow = membership ? null : await getSpaceFollow(session.space_id, auth.userId)
+    const passBalance =
+      membership?.role === 'casual'
+        ? (await getPassBalance(session.space_id, auth.userId))?.balance ?? 0
+        : null
+
     const state = getBookingState({
       session,
       confirmedCount,
       membershipRole: membership?.role ?? null,
+      isFollowing: Boolean(follow),
+      passBalance,
       existingBooking: data.userBooking?.[0] ?? null,
     })
 
@@ -119,6 +133,9 @@ export default async function handler(req: Request, res: Response) {
       confirmedCount,
       capacity: session.capacity,
       isGuest: false,
+      membershipRole: membership?.role ?? null,
+      passBalance,
+      canBookReason: getCanBookReason(state),
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected error'

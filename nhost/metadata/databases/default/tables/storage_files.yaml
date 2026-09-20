@@ -92,6 +92,32 @@ insert_permissions:
         - name
         - mime_type
         - size
+  - role: organiser
+    permission:
+      check:
+        bucket_id:
+          _eq: space-logos
+      set:
+        uploaded_by_user_id: x-hasura-User-Id
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+  - role: super_admin
+    permission:
+      check:
+        bucket_id:
+          _eq: space-logos
+      set:
+        uploaded_by_user_id: x-hasura-User-Id
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
 select_permissions:
   - role: user
     permission:
@@ -144,6 +170,40 @@ select_permissions:
       filter:
         uploaded_by_user_id:
           _eq: X-Hasura-User-Id
+  - role: organiser
+    permission:
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+        - uploaded_by_user_id
+        - created_at
+        - updated_at
+      filter:
+        bucket_id:
+          _eq: space-logos
+  - role: super_admin
+    permission:
+      columns:
+        - id
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+        - uploaded_by_user_id
+        - created_at
+        - updated_at
+      filter:
+        bucket_id:
+          _eq: space-logos
   - role: public
     permission:
       columns:
@@ -160,7 +220,7 @@ select_permissions:
         - updated_at
       filter:
         bucket_id:
-          _eq: avatars
+          _in: [avatars, space-logos]
 update_permissions:
   - role: user
     permission:
@@ -210,6 +270,42 @@ update_permissions:
       check:
         uploaded_by_user_id:
           _eq: X-Hasura-User-Id
+  - role: organiser
+    permission:
+      columns:
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+        bucket_id:
+          _eq: space-logos
+      check:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+        bucket_id:
+          _eq: space-logos
+  - role: super_admin
+    permission:
+      columns:
+        - bucket_id
+        - name
+        - mime_type
+        - size
+        - etag
+        - is_uploaded
+        - metadata
+      filter:
+        bucket_id:
+          _eq: space-logos
+      check:
+        bucket_id:
+          _eq: space-logos
 delete_permissions:
   - role: user
     permission:
@@ -226,3 +322,15 @@ delete_permissions:
       filter:
         uploaded_by_user_id:
           _eq: X-Hasura-User-Id
+  - role: organiser
+    permission:
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
+        bucket_id:
+          _eq: space-logos
+  - role: super_admin
+    permission:
+      filter:
+        bucket_id:
+          _eq: space-logos

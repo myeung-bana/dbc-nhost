@@ -7,6 +7,9 @@ export type BookingState =
   | 'waitlist_open'
   | 'already_confirmed'
   | 'already_waitlisted'
+  | 'no_membership'
+  | 'follow_only'
+  | 'no_credits'
 
 export type SessionForBooking = {
   id: string
@@ -20,6 +23,8 @@ export function getBookingState(input: {
   session: SessionForBooking
   confirmedCount: number
   membershipRole?: 'member' | 'casual' | 'organiser' | null
+  isFollowing?: boolean
+  passBalance?: number | null
   existingBooking?: { status: string } | null
   now?: Date
 }): BookingState {
@@ -38,6 +43,20 @@ export function getBookingState(input: {
     return 'already_waitlisted'
   }
 
+  if (!input.membershipRole) {
+    if (input.isFollowing) {
+      return 'follow_only'
+    }
+    return 'no_membership'
+  }
+
+  if (input.membershipRole === 'casual') {
+    const balance = input.passBalance ?? 0
+    if (balance < 1) {
+      return 'no_credits'
+    }
+  }
+
   if (input.confirmedCount >= input.session.capacity) {
     return 'waitlist_open'
   }
@@ -51,4 +70,21 @@ export function canBook(state: BookingState) {
 
 export function bookingResultStatus(state: BookingState) {
   return state === 'waitlist_open' ? 'waitlisted' : 'confirmed'
+}
+
+export function getCanBookReason(state: BookingState) {
+  switch (state) {
+    case 'no_membership':
+      return 'Join this space to book sessions'
+    case 'follow_only':
+      return 'Join as Casual to book sessions'
+    case 'no_credits':
+      return 'Ask your organiser for pass credits'
+    case 'closed':
+      return 'Booking is closed for this session'
+    case 'full':
+      return 'This session is full'
+    default:
+      return null
+  }
 }
