@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express'
-import { canBook, bookingResultStatus, getBookingState, getCanBookReason } from '../../_lib/booking'
+import { getBookingState, getCanBookReason } from '../../_lib/booking'
 import { requireAuth } from '../../_lib/auth'
 import { getActiveMembership } from '../../_lib/membership'
 import { getSpaceFollow } from '../../_lib/follows'
-import { getPassBalance } from '../../_lib/passes'
+import { loadBookablePassSummary, getSpaceRedemptionSettings } from '../../_lib/season-passes'
 import { createAdminClient } from '../../_lib/nhost-admin'
 import { sendError, sendSuccess } from '../../_lib/response'
 
@@ -113,17 +113,19 @@ export default async function handler(req: Request, res: Response) {
 
     const membership = await getActiveMembership(session.space_id, auth.userId)
     const follow = membership ? null : await getSpaceFollow(session.space_id, auth.userId)
-    const passBalance =
+    const passSummary =
       membership?.role === 'casual'
-        ? (await getPassBalance(session.space_id, auth.userId))?.balance ?? 0
+        ? await loadBookablePassSummary(session.space_id, auth.userId)
         : null
+    const redemption = await getSpaceRedemptionSettings(session.space_id)
 
     const state = getBookingState({
       session,
       confirmedCount,
       membershipRole: membership?.role ?? null,
       isFollowing: Boolean(follow),
-      passBalance,
+      passBalance: passSummary?.activeCredits ?? null,
+      passGate: passSummary?.state ?? null,
       existingBooking: data.userBooking?.[0] ?? null,
     })
 
@@ -134,7 +136,9 @@ export default async function handler(req: Request, res: Response) {
       capacity: session.capacity,
       isGuest: false,
       membershipRole: membership?.role ?? null,
-      passBalance,
+      passBalance: passSummary?.activeCredits ?? null,
+      passGate: passSummary?.state ?? null,
+      redemptionMode: redemption?.pass_redemption_mode ?? 'both',
       canBookReason: getCanBookReason(state),
     })
   } catch (error) {

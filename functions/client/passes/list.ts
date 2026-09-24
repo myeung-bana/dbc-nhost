@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express'
 import { requireAuth } from '../../_lib/auth'
-import { getBookablePassSummary, listUserSeasonPasses, toPublicPass } from '../../_lib/season-passes'
+import { listUserSeasonPasses, toPublicPass, getBookablePassSummary } from '../../_lib/season-passes'
 import { sendError, sendSuccess } from '../../_lib/response'
 
-type BalanceBody = {
+type ListBody = {
   spaceId?: string
 }
 
@@ -18,26 +18,18 @@ export default async function handler(req: Request, res: Response) {
       return sendError(res, 'Unauthorized', 401)
     }
 
-    const body = (req.body ?? {}) as BalanceBody
-    const passes = (await listUserSeasonPasses(body.spaceId ?? null, auth.userId)).map((pass) =>
-      toPublicPass(pass),
-    )
+    const body = (req.body ?? {}) as ListBody
+    const passes = await listUserSeasonPasses(body.spaceId ?? null, auth.userId)
+    const publicPasses = passes.map((pass) => toPublicPass(pass))
 
-    const grouped = new Map<string, typeof passes>()
-    for (const pass of passes) {
-      const rows = grouped.get(pass.spaceId) ?? []
-      rows.push(pass)
-      grouped.set(pass.spaceId, rows)
+    const bySpace = new Map<string, typeof publicPasses>()
+    for (const pass of publicPasses) {
+      const group = bySpace.get(pass.spaceId) ?? []
+      group.push(pass)
+      bySpace.set(pass.spaceId, group)
     }
 
-    if (body.spaceId && !grouped.has(body.spaceId)) {
-      return sendSuccess(res, {
-        balances: [{ spaceId: body.spaceId, balance: 0, updatedAt: null }],
-        passes: [],
-      })
-    }
-
-    const balances = Array.from(grouped.entries()).map(([spaceId, spacePasses]) => {
+    const balances = Array.from(bySpace.entries()).map(([spaceId, spacePasses]) => {
       const summary = getBookablePassSummary(
         spacePasses.map((pass) => ({
           start_date: pass.startDate,
@@ -56,10 +48,11 @@ export default async function handler(req: Request, res: Response) {
               slug: spacePasses[0].space.slug,
             }
           : null,
+        redemptionMode: spacePasses[0]?.space?.redemptionMode ?? 'both',
       }
     })
 
-    return sendSuccess(res, { balances, passes })
+    return sendSuccess(res, { passes: publicPasses, balances })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected error'
     return sendError(res, message, 500)

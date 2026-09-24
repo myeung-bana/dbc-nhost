@@ -10,6 +10,7 @@ export type BookingState =
   | 'no_membership'
   | 'follow_only'
   | 'no_credits'
+  | 'pass_expired'
 
 export type SessionForBooking = {
   id: string
@@ -25,6 +26,7 @@ export function getBookingState(input: {
   membershipRole?: 'member' | 'casual' | 'organiser' | null
   isFollowing?: boolean
   passBalance?: number | null
+  passGate?: 'ok' | 'no_credits' | 'pass_expired' | null
   existingBooking?: { status: string } | null
   now?: Date
 }): BookingState {
@@ -51,8 +53,13 @@ export function getBookingState(input: {
   }
 
   if (input.membershipRole === 'casual') {
-    const balance = input.passBalance ?? 0
-    if (balance < 1) {
+    if (input.passGate === 'pass_expired') {
+      return 'pass_expired'
+    }
+    if (input.passGate === 'no_credits') {
+      return 'no_credits'
+    }
+    if (!input.passGate && (input.passBalance ?? 0) < 1) {
       return 'no_credits'
     }
   }
@@ -80,6 +87,8 @@ export function getCanBookReason(state: BookingState) {
       return 'Join as Casual to book sessions'
     case 'no_credits':
       return 'Ask your organiser for pass credits'
+    case 'pass_expired':
+      return 'Your season pass has expired'
     case 'closed':
       return 'Booking is closed for this session'
     case 'full':

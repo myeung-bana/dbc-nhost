@@ -1,22 +1,22 @@
 table:
-  name: pass_ledger
+  name: booking_checkins
   schema: public
 object_relationships:
-  - name: space
-    using:
-      foreign_key_constraint_on: space_id
-  - name: user
-    using:
-      foreign_key_constraint_on: user_id
-  - name: actor
-    using:
-      foreign_key_constraint_on: actor_id
-  - name: user_season_pass
-    using:
-      foreign_key_constraint_on: user_season_pass_id
   - name: booking
     using:
       foreign_key_constraint_on: booking_id
+  - name: session
+    using:
+      foreign_key_constraint_on: session_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+  - name: user_season_pass
+    using:
+      foreign_key_constraint_on: user_season_pass_id
+  - name: scanner
+    using:
+      foreign_key_constraint_on: scanned_by
 select_permissions:
   - role: super_admin
     permission:
@@ -27,26 +27,27 @@ select_permissions:
     permission:
       columns: "*"
       filter:
-        space:
-          space_memberships:
-            user_id:
-              _eq: X-Hasura-User-Id
-            role:
-              _eq: organiser
-            status:
-              _eq: active
+        session:
+          space:
+            space_memberships:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _eq: organiser
+              status:
+                _eq: active
       allow_aggregations: true
   - role: member
     permission:
       columns:
         - id
-        - space_id
-        - user_id
-        - delta
-        - reason
+        - booking_id
         - session_id
-        - note
-        - created_at
+        - user_id
+        - user_season_pass_id
+        - method
+        - scanned_at
+        - credit_delta
       filter:
         user_id:
           _eq: X-Hasura-User-Id
@@ -54,13 +55,13 @@ select_permissions:
     permission:
       columns:
         - id
-        - space_id
-        - user_id
-        - delta
-        - reason
+        - booking_id
         - session_id
-        - note
-        - created_at
+        - user_id
+        - user_season_pass_id
+        - method
+        - scanned_at
+        - credit_delta
       filter:
         user_id:
           _eq: X-Hasura-User-Id
@@ -68,13 +69,11 @@ select_permissions:
     permission:
       columns:
         - id
-        - space_id
-        - user_id
-        - delta
-        - reason
+        - booking_id
         - session_id
-        - note
-        - created_at
+        - user_id
+        - method
+        - scanned_at
       filter:
         user_id:
           _eq: X-Hasura-User-Id
@@ -83,10 +82,10 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - space_id
-        - user_id
-        - delta
-        - reason
-        - actor_id
+        - booking_id
         - session_id
-        - note
+        - user_id
+        - user_season_pass_id
+        - method
+        - scanned_by
+        - credit_delta

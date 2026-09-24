@@ -57,6 +57,8 @@ select_permissions:
         - status
         - visibility
         - logo_url
+        - pass_redemption_mode
+        - auto_consume_cutoff_minutes
         - created_at
       filter:
         _or:
@@ -80,6 +82,8 @@ select_permissions:
         - status
         - visibility
         - logo_url
+        - pass_redemption_mode
+        - auto_consume_cutoff_minutes
         - created_at
       filter:
         _or:
@@ -145,6 +149,8 @@ update_permissions:
         - status
         - visibility
         - logo_url
+        - pass_redemption_mode
+        - auto_consume_cutoff_minutes
       filter: {}
       check: null
   - role: organiser
@@ -155,6 +161,8 @@ update_permissions:
         - description
         - visibility
         - logo_url
+        - pass_redemption_mode
+        - auto_consume_cutoff_minutes
       filter:
         space_memberships:
           user_id:

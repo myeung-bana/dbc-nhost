@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express'
 import { logActivity, requireAuth } from '../../_lib/auth'
+import { getActiveMembership } from '../../_lib/membership'
 import { createAdminClient } from '../../_lib/nhost-admin'
+import { loadBookablePassSummary } from '../../_lib/season-passes'
 import { sendError, sendSuccess } from '../../_lib/response'
 
 type CancelBody = {
@@ -87,18 +89,30 @@ export default async function handler(req: Request, res: Response) {
             session_bookings(
               where: { session_id: { _eq: $sessionId }, status: { _eq: waitlisted } }
               order_by: { created_at: asc }
-              limit: 1
+              limit: 20
             ) {
               id
+              user_id
             }
           }
         `,
         variables: { sessionId: body.sessionId },
       })
 
-      const nextWaitlisted = (waitlistResult.data as {
-        session_bookings?: Array<{ id: string }>
-      })?.session_bookings?.[0]
+      const waitlisted = (waitlistResult.data as {
+        session_bookings?: Array<{ id: string; user_id: string }>
+      })?.session_bookings ?? []
+
+      let nextWaitlisted: { id: string; user_id: string } | null = null
+      for (const candidate of waitlisted) {
+        const membership = await getActiveMembership(booking.session.space_id, candidate.user_id)
+        if (membership?.role === 'casual') {
+          const summary = await loadBookablePassSummary(booking.session.space_id, candidate.user_id)
+          if (!summary.canBook) continue
+        }
+        nextWaitlisted = candidate
+        break
+      }
 
       if (nextWaitlisted) {
         const { body: promoteResult } = await admin.graphql.request({

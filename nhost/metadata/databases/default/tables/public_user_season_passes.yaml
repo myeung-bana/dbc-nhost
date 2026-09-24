@@ -1,0 +1,148 @@
+table:
+  name: user_season_passes
+  schema: public
+object_relationships:
+  - name: space
+    using:
+      foreign_key_constraint_on: space_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+  - name: season_pass
+    using:
+      foreign_key_constraint_on: season_pass_id
+  - name: assigned_by_user
+    using:
+      foreign_key_constraint_on: assigned_by
+array_relationships:
+  - name: booking_checkins
+    using:
+      foreign_key_constraint_on:
+        column: user_season_pass_id
+        table:
+          name: booking_checkins
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      allow_aggregations: true
+  - role: member
+    permission:
+      columns:
+        - id
+        - user_id
+        - space_id
+        - season_pass_id
+        - credits_total
+        - credits_remaining
+        - start_date
+        - end_date
+        - created_at
+        - updated_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      columns:
+        - id
+        - user_id
+        - space_id
+        - season_pass_id
+        - credits_total
+        - credits_remaining
+        - start_date
+        - end_date
+        - created_at
+        - updated_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      columns:
+        - id
+        - user_id
+        - space_id
+        - season_pass_id
+        - credits_total
+        - credits_remaining
+        - start_date
+        - end_date
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - user_id
+        - space_id
+        - season_pass_id
+        - credits_total
+        - credits_remaining
+        - start_date
+        - end_date
+        - assigned_by
+  - role: organiser
+    permission:
+      check:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      columns:
+        - user_id
+        - space_id
+        - season_pass_id
+        - credits_total
+        - credits_remaining
+        - start_date
+        - end_date
+        - assigned_by
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - credits_total
+        - credits_remaining
+        - start_date
+        - end_date
+      filter: {}
+      check: null
+  - role: organiser
+    permission:
+      columns:
+        - credits_total
+        - credits_remaining
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      check: null

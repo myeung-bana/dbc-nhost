@@ -1,0 +1,132 @@
+table:
+  name: season_passes
+  schema: public
+object_relationships:
+  - name: space
+    using:
+      foreign_key_constraint_on: space_id
+  - name: created_by_user
+    using:
+      foreign_key_constraint_on: created_by
+array_relationships:
+  - name: user_season_passes
+    using:
+      foreign_key_constraint_on:
+        column: season_pass_id
+        table:
+          name: user_season_passes
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      allow_aggregations: true
+  - role: member
+    permission:
+      columns:
+        - id
+        - space_id
+        - name
+        - credit_count
+        - start_date
+        - end_date
+        - is_legacy
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            status:
+              _eq: active
+  - role: casual
+    permission:
+      columns:
+        - id
+        - space_id
+        - name
+        - credit_count
+        - start_date
+        - end_date
+        - is_legacy
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            status:
+              _eq: active
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - space_id
+        - name
+        - credit_count
+        - start_date
+        - end_date
+        - price
+        - is_legacy
+        - created_by
+  - role: organiser
+    permission:
+      check:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      columns:
+        - space_id
+        - name
+        - credit_count
+        - start_date
+        - end_date
+        - price
+        - created_by
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - name
+        - credit_count
+        - start_date
+        - end_date
+        - price
+      filter: {}
+      check: null
+  - role: organiser
+    permission:
+      columns:
+        - name
+        - credit_count
+        - start_date
+        - end_date
+        - price
+      filter:
+        space:
+          space_memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: organiser
+            status:
+              _eq: active
+      check: null
