@@ -11,6 +11,9 @@ object_relationships:
   - name: location
     using:
       foreign_key_constraint_on: location_id
+  - name: activity
+    using:
+      foreign_key_constraint_on: activity_id
 array_relationships:
   - name: session_bookings
     using:
@@ -113,6 +116,7 @@ insert_permissions:
         - space_id
         - court_id
         - location_id
+        - activity_id
         - title
         - starts_at
         - ends_at
@@ -133,6 +137,7 @@ insert_permissions:
         - space_id
         - court_id
         - location_id
+        - activity_id
         - title
         - starts_at
         - ends_at
@@ -144,6 +149,7 @@ update_permissions:
       columns:
         - court_id
         - location_id
+        - activity_id
         - title
         - starts_at
         - ends_at
@@ -156,6 +162,7 @@ update_permissions:
       columns:
         - court_id
         - location_id
+        - activity_id
         - title
         - starts_at
         - ends_at

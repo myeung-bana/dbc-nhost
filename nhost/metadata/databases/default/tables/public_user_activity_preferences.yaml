@@ -1,0 +1,72 @@
+table:
+  name: user_activity_preferences
+  schema: public
+object_relationships:
+  - name: activity
+    using:
+      foreign_key_constraint_on: activity_id
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: member
+    permission:
+      columns: "*"
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      columns: "*"
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      columns: "*"
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+insert_permissions:
+  - role: member
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - user_id
+        - activity_id
+  - role: casual
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - user_id
+        - activity_id
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - user_id
+        - activity_id
+delete_permissions:
+  - role: member
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: casual
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

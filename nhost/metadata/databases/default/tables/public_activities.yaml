@@ -1,0 +1,99 @@
+table:
+  name: activities
+  schema: public
+object_relationships:
+  - name: parent
+    using:
+      foreign_key_constraint_on: parent_id
+array_relationships:
+  - name: children
+    using:
+      foreign_key_constraint_on:
+        column: parent_id
+        table:
+          name: activities
+          schema: public
+  - name: space_activities
+    using:
+      foreign_key_constraint_on:
+        column: activity_id
+        table:
+          name: space_activities
+          schema: public
+  - name: user_activity_preferences
+    using:
+      foreign_key_constraint_on:
+        column: activity_id
+        table:
+          name: user_activity_preferences
+          schema: public
+  - name: sessions
+    using:
+      foreign_key_constraint_on:
+        column: activity_id
+        table:
+          name: sessions
+          schema: public
+select_permissions:
+  - role: super_admin
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true
+  - role: organiser
+    permission:
+      columns: "*"
+      filter:
+        status:
+          _eq: active
+  - role: member
+    permission:
+      columns: "*"
+      filter:
+        status:
+          _eq: active
+  - role: casual
+    permission:
+      columns: "*"
+      filter:
+        status:
+          _eq: active
+  - role: user
+    permission:
+      columns: "*"
+      filter:
+        status:
+          _eq: active
+  - role: public
+    permission:
+      columns: "*"
+      filter:
+        status:
+          _eq: active
+insert_permissions:
+  - role: super_admin
+    permission:
+      check: {}
+      columns:
+        - name
+        - slug
+        - parent_id
+        - description
+        - sort_order
+        - status
+update_permissions:
+  - role: super_admin
+    permission:
+      columns:
+        - name
+        - slug
+        - parent_id
+        - description
+        - sort_order
+        - status
+      filter: {}
+      check: null
+delete_permissions:
+  - role: super_admin
+    permission:
+      filter: {}
