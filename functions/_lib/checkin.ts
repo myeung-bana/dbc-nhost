@@ -248,6 +248,7 @@ export async function performCheckin(input: {
     bookingId,
     method: input.method,
     actorId: input.auth.userId,
+    at: new Date(session.starts_at),
   })
 
   return {

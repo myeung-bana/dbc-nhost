@@ -109,7 +109,7 @@ export default async function handler(req: Request, res: Response) {
             bookingId: booking.id,
             method: 'auto_consume',
             actorId: booking.user_id,
-            at: now,
+            at: new Date(session.starts_at),
           })
           deducted += 1
         } catch (error) {

@@ -50,11 +50,21 @@ export function dateOnly(value: Date) {
   return value.toISOString().slice(0, 10)
 }
 
+/** Venue calendar day. Pass dates are matched to the session clock, not UTC. */
+export function hongKongDay(value: Date) {
+  return value.toLocaleDateString('en-CA', {
+    timeZone: 'Asia/Hong_Kong',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
+
 export function isWithinWindow(
   pass: { start_date: string; end_date: string },
   at: Date,
 ) {
-  const day = dateOnly(at)
+  const day = hongKongDay(at)
   return pass.start_date <= day && day <= pass.end_date
 }
 
@@ -156,7 +166,7 @@ export function getBookablePassSummary(
   if (inWindow.length > 0) {
     return { canBook: false, state: 'no_credits', activeCredits: 0 }
   }
-  if (passes.some((pass) => dateOnly(now) > pass.end_date)) {
+  if (passes.some((pass) => hongKongDay(now) > pass.end_date)) {
     return { canBook: false, state: 'pass_expired', activeCredits: 0 }
   }
   return { canBook: false, state: 'no_credits', activeCredits: 0 }

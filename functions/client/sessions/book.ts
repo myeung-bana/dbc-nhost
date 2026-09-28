@@ -87,7 +87,11 @@ export default async function handler(req: Request, res: Response) {
 
     const passSummary =
       membership.role === 'casual'
-        ? await loadBookablePassSummary(session.space_id, auth.userId)
+        ? await loadBookablePassSummary(
+            session.space_id,
+            auth.userId,
+            new Date(session.starts_at),
+          )
         : null
 
     const state = getBookingState({

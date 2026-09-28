@@ -115,7 +115,11 @@ export default async function handler(req: Request, res: Response) {
     const follow = membership ? null : await getSpaceFollow(session.space_id, auth.userId)
     const passSummary =
       membership?.role === 'casual'
-        ? await loadBookablePassSummary(session.space_id, auth.userId)
+        ? await loadBookablePassSummary(
+            session.space_id,
+            auth.userId,
+            new Date(session.starts_at),
+          )
         : null
     const redemption = await getSpaceRedemptionSettings(session.space_id)
 

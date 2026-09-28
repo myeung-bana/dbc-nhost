@@ -43,6 +43,7 @@ export default async function handler(req: Request, res: Response) {
               id
               space_id
               capacity
+              starts_at
             }
           }
         }
@@ -58,7 +59,7 @@ export default async function handler(req: Request, res: Response) {
       session_bookings?: Array<{
         id: string
         status: string
-        session: { id: string; space_id: string; capacity: number }
+        session: { id: string; space_id: string; capacity: number; starts_at: string }
       }>
     }).session_bookings?.[0]
 
@@ -107,7 +108,11 @@ export default async function handler(req: Request, res: Response) {
       for (const candidate of waitlisted) {
         const membership = await getActiveMembership(booking.session.space_id, candidate.user_id)
         if (membership?.role === 'casual') {
-          const summary = await loadBookablePassSummary(booking.session.space_id, candidate.user_id)
+          const summary = await loadBookablePassSummary(
+            booking.session.space_id,
+            candidate.user_id,
+            new Date(booking.session.starts_at),
+          )
           if (!summary.canBook) continue
         }
         nextWaitlisted = candidate
